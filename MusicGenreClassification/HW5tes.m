@@ -1,6 +1,3 @@
-% APPENDIX II: MATLAB CODE
-
-
 clear all; close all; clc;
 
 y = wavread('Allthatjazz');
