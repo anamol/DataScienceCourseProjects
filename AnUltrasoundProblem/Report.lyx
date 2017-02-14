@@ -1,0 +1,3832 @@
+#LyX 2.1 created this file. For more info see http://www.lyx.org/
+\lyxformat 474
+\begin_document
+\begin_header
+\textclass extarticle
+\use_default_options true
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman cmr
+\font_sans default
+\font_typewriter default
+\font_math auto
+\font_default_family rmdefault
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 1
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+HW 1: An Ultrasound Problem
+\end_layout
+
+\begin_layout Author
+Anamol Pundle
+\end_layout
+
+\begin_layout Abstract
+The process and results of de-noising a dataset using a band-pass filter
+ and time averaging are described in this report.
+ The noisy data consists of a set of twenty measurements in time obtained
+ using ultrasound directed towards a small area in the intestines of a canine
+ specimen that has ingested a marble.
+ The frequency of the signal reflected off of the marble is constant in
+ time but noisy due to movement of the canid and internal fluid movement.
+ The frequency signature of the marble is first identified by time averaging
+ the frequency spectrum.
+ A Gaussian filter in frequency domain is constructed using the center frequency
+, which is then applied to the noisy data in frequency domain at each time
+ step.
+ Conversion of the de-noised spectrum to time domain gives us the position
+ of the marble at each time step.
+ The trajectory of the marble is plotted, and the position of the focus
+ of an intense acoustic wave to break up the marble is calculated.
+\end_layout
+
+\begin_layout Section
+Introduction and Overview
+\end_layout
+
+\begin_layout Standard
+The Fast Fourier Transform (FFT) has revolutionized the field of signal
+ processing.
+ The key feature of this method is to use the FFT algorithm to decompose
+ a signal into its frequency components, identify the desirable frequencies
+ and attenuate the undesirable ones.
+ In the problem at hand, we are provided with a set of twenty ultrasound
+ measurements from the intestines of a dog, who has swallowed a marble.
+ The data is noisy, due to the movement of the dog and its internal fluid
+ movement.
+ The goal is to de-noise this data and find the frequency signature of the
+ set of signals, and subsequently the trajectory of the marble, so that
+ an intense acoustic wave can be focussed on the marble in order to break
+ it up at the final time step.
+ 
+\end_layout
+
+\begin_layout Standard
+Several concepts are implemented in order to achieve this goal, including
+ the FFT algorithm, averaging the frequency of the signals and Gaussian
+ filtering.
+ These are described in detail in the next section, followed by the a discussion
+ of the algorithm used.
+ The computational results of this exercise are then documented, followed
+ by a list of MATLAB functions used in the computer program and the source
+ code.
+\end_layout
+
+\begin_layout Section
+Theoretical Background
+\end_layout
+
+\begin_layout Subsection
+The Fourier Transform
+\end_layout
+
+\begin_layout Standard
+The Fourier transform is a useful and efficient tool to solve several problems
+ arising in the physical and biological sciences.
+ The Fourier transform decomposes a signal in time into its frequency components.
+ It is defined over the entire line, i.e., 
+\begin_inset Formula $x\in[\text{-∞},\text{∞}]$
+\end_inset
+
+ and is an integral transform.
+ It is defined as 
+\begin_inset Formula 
+\begin{equation}
+\hat{f}(k)=\frac{1}{\sqrt{2\pi}}\int_{-\infty}^{\infty}f(x)\ e^{-ikx}\, dx
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Its inverse is defined as
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+f(x)=\frac{1}{\sqrt{2\pi}}\int_{-\infty}^{\infty}\hat{f}(k)\ e^{ikx}\, dk
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Our domain, however, is finite 
+\begin_inset Formula $x\in[\text{-L},\text{L}]$
+\end_inset
+
+, due to which the continuous eigenfunction expansion becomes a discrete
+ sum of eigenfunctions and their eigenvalues.
+ The Fourier transform has the added advantage of being linear.
+ Another property of the Fourier transform is that a narrow signal in the
+ time domain has a large spread in the frequency domain and vice-versa.
+ Therefore, the Fourier transform provides no information about the positions
+ in time of these frequencies.
+ Techniques such as windowed Fourier transforms can be used to find both
+ the frequency decomposition as well as the position of those frequencies
+ in time.
+\end_layout
+
+\begin_layout Subsection
+The FFT Algorithm
+\end_layout
+
+\begin_layout Standard
+The algorithms most frequently used to calculate the Fourier transform of
+ a function (and its inverse) are known as the FFT Algorithm.
+ The most common FFT algorithm is the Cooley-Tukey algorithm, developed
+ by J.W.
+ Cooley and John Tukey, which follows the general technique of divide and
+ conquer.
+ The algorithm divides the Fourier transform of the function into two smaller
+ Fourier transforms recursively, resulting in a reduction of the computational
+ time to 
+\begin_inset Formula $O(N~logN)$
+\end_inset
+
+.
+ However, due to the recursive division by two, the algorithm requires the
+ domain to be discretized into 
+\begin_inset Formula $2^{N}$
+\end_inset
+
+points.
+ The algorithm also implies periodic boundary conditions on the boundaries,
+ owing to the 
+\begin_inset Formula $e^{ikx}$
+\end_inset
+
+ term.
+ The Cooley-Tukey FFT algorithm has excellent accuracy when compared to
+ other discretization schemes, such as finite differencing.
+\end_layout
+
+\begin_layout Subsection
+Gaussian Filtering and Time Averaging
+\end_layout
+
+\begin_layout Standard
+A commonly used technique used to filter data where the frequency spectrum
+ does not change with time is Gaussian filtering.
+ A Gaussian function centered on the frequency of choice is first constructed.
+ The Gaussian function in one dimension is defined as
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+f(x)=A~exp(-\left(\frac{(x-xo)^{2}}{2\sigma_{x}^{2}}\right)
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+where A is the amplitude, 
+\begin_inset Formula $x_{o}$
+\end_inset
+
+ is the centre and 
+\begin_inset Formula $\sigma_{x}$
+\end_inset
+
+ is the spread of the function.
+ Multiplying this function with the frequency spectrum of the signal results
+ in the attenuation of all frequencies away from the center of the Gaussian
+ function and the isolation of the frequency near the center.
+ The filter can be extended to higher dimensions by adding a term for each
+ dimension inside the exponential function.
+\end_layout
+
+\begin_layout Standard
+Time averaging the frequency spectrum of a signal over multiple time steps
+ is an effective method to suppress white noise.
+ White noise can be defined as a random signal equally distributed over
+ all frequencies with zero mean and finite standard deviation.
+ Since the mean of the signal is zero, adding a sufficient number of signals
+ in the frequency domain should result in the white noise adding up to zero.
+ This fact can be used to filter signals where the frequency of the signal
+ is unknown but constant, as is done in this report.
+ Once the frequency distribution of the signal has been isolated by time
+ averaging, a Gaussian filter around the frequency can be constructed and
+ applied to the all signals used in time averaging.
+\end_layout
+
+\begin_layout Section
+Algorithm Implementation and Development
+\end_layout
+
+\begin_layout Standard
+This section lists the algorithm used to isolate the frequency signature
+ of the signal, attenuate noise in the data and find the trajectory of the
+ marble.
+\end_layout
+
+\begin_layout Itemize
+Open 
+\family typewriter
+testdata.mat
+\end_layout
+
+\begin_layout Itemize
+Define domain size and grid vectors
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+The grid vectors for the frequency domain need to be multiplied by 
+\begin_inset Formula $\frac{2\pi}{L}$
+\end_inset
+
+ since the FFT algorithm assumes 
+\begin_inset Formula $2\pi$
+\end_inset
+
+ periodic signals.
+ These grid vectors also need to be shifted using the 
+\family typewriter
+fftshift
+\family default
+ function, since the FFT algorithm shifts the data such that 
+\begin_inset Formula $x\in[\text{-L},\text{0}]\text{→[0,L]}$
+\end_inset
+
+ and 
+\begin_inset Formula $x\in[\text{0},\text{L}]\text{→[-L,0]}$
+\end_inset
+
+.
+\end_layout
+
+\end_deeper
+\begin_layout Itemize
+Construct cartesian grid in 3D using 
+\family typewriter
+meshgrid
+\end_layout
+
+\begin_layout Itemize
+Reshape 1D data from
+\family typewriter
+ testdata.mat 
+\family default
+into 3D using 
+\family typewriter
+reshape
+\end_layout
+
+\begin_layout Itemize
+Fourier transform each data signal using the 
+\family typewriter
+fftn
+\family default
+ function and add together to variable 
+\family typewriter
+Utave
+\family default
+ 
+\end_layout
+
+\begin_layout Itemize
+Normalize 
+\family typewriter
+Utave
+\family default
+ using largest element in matrix.
+ Take absolute value and 
+\family typewriter
+fftshift
+\family default
+.
+ Visualize using 
+\family typewriter
+isosurface
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+The absolute value of 
+\family typewriter
+Utave
+\family default
+ needs to be taken because the FFT multiplies every other mode by -1.
+\end_layout
+
+\end_deeper
+\begin_layout Itemize
+Find center frequency and its spread.
+\end_layout
+
+\begin_layout Itemize
+Construct a 3D Gaussian function centered on the center frequency with spread
+ covering the frequency signature.
+\end_layout
+
+\begin_layout Itemize
+Multiply each signal in Fourier space by the Gaussian filter.
+\end_layout
+
+\begin_layout Itemize
+Take the inverse FFT of each signal.
+ 
+\end_layout
+
+\begin_layout Itemize
+Use 
+\family typewriter
+fftshift
+\family default
+ to shift the data, normalize using the largest element in the matrix and
+ the take the absolute value.
+\end_layout
+
+\begin_layout Itemize
+Visualize using 
+\family typewriter
+isosurface
+\family default
+ and 
+\family typewriter
+plot3
+\family default
+ functions.
+\end_layout
+
+\begin_layout Itemize
+Find the coordinates of position of the marble at the last time step.
+\end_layout
+
+\begin_layout Standard
+The Gaussian filter used for the problem is 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+f(Kx,Ky,Kz)=exp\left(-\frac{\left(\left(Kx-1.885\right)^{2}+\left(Ky+1.047\right)^{2}+Kz^{2}\right)}{2}\right)
+\end{equation}
+
+\end_inset
+
+where Kx, Ky and Kz are variables in the frequency domain.
+ The center of the Gaussian function is found from the frequency signature,
+ and the spread is found heuristically.
+\end_layout
+
+\begin_layout Section
+Computational Results
+\end_layout
+
+\begin_layout Standard
+From the code stub provided with the problem, the spatial resolution of
+ the ultrasound scanner is found to be 0.46875( units not mentioned) and
+ the spectral resolution is found to be 1.000.
+ Figure 1 shows an isosurface visualization (with threshold 0.7) of noisy
+ data in both time and frequency domain.
+ No discernible signal can be observed.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset space \hfill{}
+\end_inset
+
+
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename noise time.png
+	width 5.5cm
+	height 5.5cm
+	keepAspectRatio
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Isosurface visualization in time domain
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset space \hfill{}
+\end_inset
+
+
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename noisefft.png
+	width 5.5cm
+	height 5.5cm
+	keepAspectRatio
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Isosurface visualization in frequency domain
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset space \hfill{}
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Visualization of noisy data signal 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Figure 2a shows the frequency signature of the signals after time averaging.
+ The frequency signature is concentrated at 
+\begin_inset Formula $(9,-5,0)$
+\end_inset
+
+ (after multiplying by 
+\begin_inset Formula $\frac{L}{2\pi}$
+\end_inset
+
+).
+ A visualization of the Gaussian function constructed at this center is
+ shown in Figure 2b.
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset space \hfill{}
+\end_inset
+
+
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename freqdist.png
+	width 5.5cm
+	height 5.5cm
+	keepAspectRatio
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Frequency signature of signals
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset space \hfill{}
+\end_inset
+
+
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename gaussfilter.png
+	width 5.5cm
+	height 5.5cm
+	keepAspectRatio
+
+\end_inset
+
+
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Gauss Filter centered on center frequency
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset space \hfill{}
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Frequency distribution of signal and Gaussian Filter
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Figure 3a shows an isosurface visualization of the trajectory of the marble,
+ obtained after applying the Gaussian filter to the signal at each time
+ step.
+ The marble seems to moving in a downward helical motion.
+ Figure 3b shows the motion of the centre of the marble using the plot3
+ function.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset space \hfill{}
+\end_inset
+
+
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename Trajiso.png
+	width 5.5cm
+	height 5.5cm
+	keepAspectRatio
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Isosurface visualization
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset space \hfill{}
+\end_inset
+
+
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename trajplot3.png
+	width 5.5cm
+	height 5.5cm
+	keepAspectRatio
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Plot3 visualization
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset space \hfill{}
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Visualization of trajectory of marble
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Figure 4 shows an isosurface visualization of the final position of the
+ marble.
+ The final position is found to be 
+\begin_inset Formula $(-5.625,4.2188,-6.0398)$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename finaliso.png
+	width 8cm
+	height 8cm
+	keepAspectRatio
+
+\end_inset
+
+
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Isosurface visualization of final position of marble
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Summary and Conclusions
+\end_layout
+
+\begin_layout Standard
+The techniques of gaussian filtering and time averaging were successfully
+ applied to the problem of de-noising data in 3D space.
+ The frequency signature of the signals was identified by averaging the
+ signals obtained through successive measurements.
+ A gaussian filter was constructed around the frequency signature and applied
+ to every signal.
+ The trajectory of the marble was thus found, and the position of the marble
+ at the final time step was found to be 
+\begin_inset Formula $(-5.625,4.2188,-6.0398)$
+\end_inset
+
+.
+ 
+\end_layout
+
+\begin_layout Section*
+References
+\end_layout
+
+\begin_layout Enumerate
+Kutz, J.
+ Nathan, Data-Driven Modeling & Scientific Computation: Methods for Complex
+ Systems & Big Data, September 2013
+\end_layout
+
+\begin_layout Enumerate
+http://en.wikipedia.org/wiki/Cooley%E2%80%93Tukey_FFT_algorithm
+\end_layout
+
+\begin_layout Enumerate
+http://en.wikipedia.org/wiki/Fourier_transform
+\end_layout
+
+\begin_layout Enumerate
+Matlab help
+\end_layout
+
+\begin_layout Section*
+Appendix I: MATLAB Functions Used
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+linspace
+\family default
+: generates linearly spaced vectors.
+\end_layout
+
+\begin_layout Itemize
+
+\family typewriter
+linspace(X1, X2, N)
+\family default
+ generates N points between X1 and X2.
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+meshgrid
+\family default
+: creates cartesian grid in 2D/3D space using grid vectors.
+\end_layout
+
+\begin_layout Itemize
+[
+\family typewriter
+X,Y,Z] = meshgrid(xgv,ygv,zgv)
+\family default
+ replicates the grid vectors xgv, ygv, zgv to produce the coordinates of
+ a 3D rectangular grid (X, Y, Z).
+ The grid vectors xgv,ygv,zgv form the columns of X, rows of Y, and pages
+ of Z respectively.
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+zeros
+\family default
+: creates a zeros vector/matrix 
+\end_layout
+
+\begin_layout Itemize
+
+\family typewriter
+zeros(M,N)
+\family default
+ or 
+\family typewriter
+zeros([M,N])
+\family default
+ is an M-by-N matrix of zeros.
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+max
+\family default
+: finds the largest element in a vector/matrix
+\end_layout
+
+\begin_layout Itemize
+
+\family typewriter
+[Y,I] = max(X)
+\family default
+ returns the indices of the maximum values in vector I.
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+fftn
+\family default
+: N-dimensional discrete Fourier transform
+\end_layout
+
+\begin_layout Itemize
+
+\family typewriter
+fftn(X)
+\family default
+ returns the N-dimensional discrete Fourier transform of the N-D array X.
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+ifftn
+\family default
+: N-dimensional inverse discrete Fourier transform 
+\end_layout
+
+\begin_layout Itemize
+
+\family typewriter
+ifftn(F)
+\family default
+ returns the N-dimensional inverse discrete Fourier transform of the N-D
+ array F.
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+fftshift
+\family default
+: shifts data such that
+\family typewriter
+ 
+\begin_inset Formula $x\in[\text{-L},\text{0}]\text{→[0,L]}$
+\end_inset
+
+ and 
+\family default
+
+\begin_inset Formula $x\in[\text{0},\text{L}]\text{→[-L,0]}$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+For vectors, 
+\family typewriter
+fftshift(X)
+\family default
+ swaps the left and right halves of X.
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+abs: 
+\family default
+finds absolute value
+\end_layout
+
+\begin_layout Itemize
+
+\family typewriter
+abs(X)
+\family default
+ is the absolute value of the elements of X.
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+reshape: 
+\family default
+reshapes array
+\end_layout
+
+\begin_layout Itemize
+
+\family typewriter
+reshape(X,M,N)
+\family default
+ or 
+\family typewriter
+reshape(X,[M,N])
+\family default
+ returns the M-by-N matrix whose elements are taken columnwise from X.
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+isosurface: 
+\family default
+Extracts an isosurface from a volume
+\end_layout
+
+\begin_layout Itemize
+
+\family typewriter
+FV = isosurface(X,Y,Z,V,ISOVALUE)
+\family default
+ computes isosurface geometry for data V at isosurface value 
+\family typewriter
+ISOVALUE
+\family default
+.
+ Arrays (X,Y,Z) specify the points at which the data V is given.
+ The struct FV contains the faces and vertices of the isosurface
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+plot3
+\family default
+: Plots lines and points in 3-D space.
+\end_layout
+
+\begin_layout Itemize
+
+\family typewriter
+plot3(x,y,z)
+\family default
+, where x, y and z are three vectors of the same length, plots a line in
+ 3-space through the points whose coordinates are the elements of x, y and
+ z.
+\end_layout
+
+\begin_layout Section*
+Appendix II: MATLAB Code
+\end_layout
+
+\begin_layout Standard
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\family typewriter
+
+\begin_inset space ~
+\end_inset
+
+clear all; close all; clc; 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+load Testdata
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\begin_inset space ~
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+L=15; 
+\color blue
+% spatial domain 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+n=64; 
+\color blue
+% Fourier modes
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\begin_inset space ~
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\color blue
+% define grid vectors, create 3D cartesian grid 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+x2=linspace(-L,L,n+1); x=x2(1:n); y=x; z=x; 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+k=(2*pi/(2*L))*[0:(n/2-1) -n/2:-1]; ks=fftshift(k);
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\begin_inset space ~
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+[X,Y,Z]=meshgrid(x,y,z); 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+[Kx,Ky,Kz]=meshgrid(ks,ks,ks);
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\begin_inset space ~
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+Utave = zeros(n,n,n); 
+\color blue
+% variable for averaged frequency 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\begin_inset space ~
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\color blue
+% calculate average of frequencies over all 20 signals 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+for j=1:20 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+Un(:,:,:)=reshape(Undata(j,:),n,n,n); 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+Utave = Utave + fftn(Un); 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+end
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\begin_inset space ~
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+Utave = abs(fftshift(Utave)); 
+\color blue
+% shift and take abs value of averaged 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\color blue
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+%frequency data
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\begin_inset space ~
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\color blue
+% find index of center frequency in Utave 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+maxi = 0; 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+for ii = 1:64 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+for jj = 1:64 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+for kk = 1:64 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+if Utave(ii, jj, kk) > maxi 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+maxi = Utave(ii, jj, kk); 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+a = ii; b = jj, c = kk; 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+end 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+end 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+end 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+end
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\color blue
+% isosurface visualization of frequency signature
+\color inherit
+ 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+figure(1)
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+isosurface(Kx,Ky,Kz,abs(Utave)/max(Utave(:)),0.6, 'r'); 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+set(gca, 'FontSize',18); 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+axis([ks(1) -ks(1) ks(1) -ks(1) ks(1) -ks(1)]), grid on; 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+xlabel('Kx'); ylabel('Ky'); zlabel('Kz');
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\color blue
+% create Gauss filter 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+gaussfilter = exp(-((Kx-ks(b)).^2 + (Ky-ks(a)).^2 + (Kz-ks(c)).^2)/2);
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\color blue
+% slice visualization of Gauss filter
+\color inherit
+ 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+slice(Kx,Ky, Kz, gaussfilter, 2,-1,0); 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+set(gca, 'FontSize', 20); 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+axis([ks(1) -ks(1) ks(1) -ks(1) ks(1) -ks(1)]); 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+xlabel('Kx'); ylabel('Ky'); zlabel('Kz');
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\color blue
+% Apply Gauss filter to all 20 signals
+\color inherit
+ 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+maxi = 0; M = []; 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+for j = 1:20 
+\end_layout
+
+\begin_layout Standard
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\family typewriter
+Un(:,:,:)=reshape(Undata(j,:),n,n,n); 
+\end_layout
+
+\begin_layout Standard
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\family typewriter
+Utn = fftshift(fftn(Un)); 
+\end_layout
+
+\begin_layout Standard
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\family typewriter
+Newt = Utn.*gaussfilter; 
+\end_layout
+
+\begin_layout Standard
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\family typewriter
+New= ifftn(Newt); 
+\end_layout
+
+\begin_layout Standard
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\family typewriter
+\color blue
+% find index of maximum element in each 3D matrix
+\color inherit
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\family typewriter
+for ii = 1:64 
+\end_layout
+
+\begin_layout Standard
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\family typewriter
+for jj = 1:64 
+\end_layout
+
+\begin_layout Standard
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\family typewriter
+for kk = 1:64 
+\end_layout
+
+\begin_layout Standard
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\family typewriter
+if abs(New(ii,jj,kk)) > maxi 
+\end_layout
+
+\begin_layout Standard
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\family typewriter
+maxi = abs(New(ii,jj,kk)); 
+\end_layout
+
+\begin_layout Standard
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\family typewriter
+bb = X(1,ii,1); aa = Y(jj,1,1); cc = Z(1,1,kk); 
+\end_layout
+
+\begin_layout Standard
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\family typewriter
+end 
+\end_layout
+
+\begin_layout Standard
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\family typewriter
+end 
+\end_layout
+
+\begin_layout Standard
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\family typewriter
+end 
+\end_layout
+
+\begin_layout Standard
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\family typewriter
+end 
+\end_layout
+
+\begin_layout Standard
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\family typewriter
+maxi = 0; 
+\end_layout
+
+\begin_layout Standard
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\family typewriter
+M = [M ;[aa bb cc]];
+\color blue
+ % store indices of maximum elements 
+\end_layout
+
+\begin_layout Standard
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\family typewriter
+\color blue
+% of all 20 time steps in M 
+\end_layout
+
+\begin_layout Standard
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\family typewriter
+\color blue
+% isosurface visualization of trajectory of marble 
+\end_layout
+
+\begin_layout Standard
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\family typewriter
+figure(2) 
+\end_layout
+
+\begin_layout Standard
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\family typewriter
+isosurface(X, Y, Z, abs(New)/max(abs(New(:))), 0.7); 
+\end_layout
+
+\begin_layout Standard
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\family typewriter
+axis([-L L -L L -L L]), grid on; 
+\end_layout
+
+\begin_layout Standard
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\family typewriter
+set(gca, 'FontSize',20); 
+\end_layout
+
+\begin_layout Standard
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\family typewriter
+xlabel('X'); ylabel('Y'); zlabel('Z'); 
+\end_layout
+
+\begin_layout Standard
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\family typewriter
+pause(0.1); 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+end
+\end_layout
+
+\begin_layout Standard
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\color blue
+% visualization of trajectory of marble using plot3
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+figure(3) 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+plot3(M(:,1), M(:,2), M(:,3),'k--o', 'LineWidth', 5); 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+axis([-L L -L L -L L]), grid on; 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+set(gca, 'FontSize',20); 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+xlabel('X'); ylabel('Y'); zlabel('Z');
+\end_layout
+
+\begin_layout Standard
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\color blue
+% isosurface visualization of final position of marble
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+figure(4) 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+isosurface(X, Y, Z, abs(New)/max(abs(New(:))), 0.7); 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+set(gca, 'FontSize',20); 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+xlabel('X'); ylabel('Y'); zlabel('Z'); 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+axis([-L L -L L -L L]), grid on;
+\end_layout
+
+\end_body
+\end_document
