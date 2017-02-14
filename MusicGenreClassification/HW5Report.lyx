@@ -1,0 +1,1368 @@
+#LyX 2.1 created this file. For more info see http://www.lyx.org/
+\lyxformat 474
+\begin_document
+\begin_header
+\textclass article
+\use_default_options true
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_math auto
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 1
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+HW 5: Music Genre Classification
+\end_layout
+
+\begin_layout Author
+Anamol Pundle
+\end_layout
+
+\begin_layout Abstract
+Machine learning techniques are utilized in this work to classify music
+ from several different bands and genres after training the algorithm with
+ music from the same bands and genres.
+ A random assortment of fifteen songs from each band/genre is compiled,
+ and spectrograms of these data are made.
+ An 'economy' singular value decomposition of the spectrograms is performed,
+ subsequent to which randomly selected songs from each band/genre are used
+ to train the algorithm, and the rest are used as test sets.
+ This is repeated several hundred times and an average accuracy percentage
+ is calculated.
+ Three different analyses are performed using two machine learning algorithms.
+ Accuracy percentages are found to vary from 40% to 80%.
+\end_layout
+
+\begin_layout Section
+Introduction and Overview
+\end_layout
+
+\begin_layout Standard
+Music genres are instantly recognizable to us, whether it be jazz, classical,
+ blues, rap, rock, etc.
+ One can always ask how the brain classifies such information and how it
+ makes a decision based upon hearing a new piece of music.
+ The objective of this work is to attempt to write a code that can classify
+ a given piece of music by sampling a five second clip.
+ This is done using machine learning algorithms, namely 
+\shape italic
+linear discriminant analysis
+\shape default
+ and the 
+\shape italic
+naive Bayes classifier
+\shape default
+.
+\end_layout
+
+\begin_layout Standard
+Three different analyses are conducted in this work.
+ Three bands/genres of music are chosen for each analysis.
+ Fifteen songs of each band/genre are chosen and a five second sample from
+ song is selected, after which a spectrogram is constructed.
+ The spectrogram is decomposed into its constituent principal components,
+ after which certain rows from the unitary rotation matrix 
+\begin_inset Formula $'V'$
+\end_inset
+
+ are chosen as the training set and test set (without overlap).
+ The LDA and naive ayes are then applied to these cases.
+ Cross validation of the training and tests sets is also done.
+\end_layout
+
+\begin_layout Standard
+The first analysis is the classification of music from three bands playing
+ different genres of music.
+ The bands/musicians chosen for this analysis are Pink Floyd (progressive/psyche
+delic rock), John Coltrane (jazz) and Nirvana (grunge).
+ The second analysis is the classification of bands from the same genre,
+ in this case, grunge.
+ The bands chosen are Nirvana, Soundgarden and Pearl Jam.
+ The third analysis is the classification of songs by different genres.
+ In this case, an assortment of songs by different artists in the genres
+ of grunge, jazz and classic rock are used.
+ 
+\end_layout
+
+\begin_layout Section
+Theoretical Background
+\end_layout
+
+\begin_layout Subsection
+Linear Discriminant Analysis
+\end_layout
+
+\begin_layout Standard
+Linear discriminant analysis (LDA) is a generalization of Fisher's linear
+ discriminant are methods used in statistics, pattern recognition and machine
+ learning to find a linear combination of features which characterizes or
+ separates two or more classes of objects or events.
+ The resulting combination may be used as a linear classifier, or, more
+ commonly, for dimensionality reduction before later classification.
+ LDA is closely related to analysis of variance (ANOVA) and regression analysis,
+ which also attempt to express one dependent variable as a linear combination
+ of other features or measurements.
+ However, ANOVA uses categorical independent variables and a continuous
+ dependent variable, whereas discriminant analysis has continuous independent
+ variables and a categorical dependent variable (i.e.
+ the class label).
+ Logistic regression and probit regression are more similar to LDA, as they
+ also explain a categorical variable by the values of continuous independent
+ variables.
+ These other methods are preferable in applications where it is not reasonable
+ to assume that the independent variables are normally distributed, which
+ is a fundamental assumption of the LDA method.
+ LDA is also closely related to principal component analysis (PCA) and factor
+ analysis in that they both look for linear combinations of variables which
+ best explain the data.
+ LDA explicitly attempts to model the difference between the classes of
+ data.
+ PCA on the other hand does not take into account any difference in class,
+ and factor analysis builds the feature combinations based on differences
+ rather than similarities.
+ Discriminant analysis is also different from factor analysis in that it
+ is not an interdependence technique: a distinction between independent
+ variables and dependent variables (also called criterion variables) must
+ be made.
+ LDA works when the measurements made on independent variables for each
+ observation are continuous quantities.
+ When dealing with categorical independent variables, the equivalent technique
+ is discriminant correspondence analysis.
+\end_layout
+
+\begin_layout Subsection
+Naive Bayes Classifier
+\end_layout
+
+\begin_layout Standard
+Naive Bayes classifiers are a family of simple probabilistic classifiers
+ based on applying Bayes' theorem with strong (naive) independence assumptions
+ between the features.
+ Naive Bayes has been studied extensively since the 1950s.
+ It was introduced under a different name into the text retrieval community
+ in the early 1960s, and remains a popular (baseline) method for text categoriza
+tion, the problem of judging documents as belonging to one category or the
+ other (such as spam or legitimate, sports or politics, etc.) with word frequenci
+es as the features.
+ With appropriate preprocessing, it is competitive in this domain with more
+ advanced methods including support vector machines.
+ It also finds application in automatic medical diagnosis.
+ Naive Bayes classifiers are highly scalable, requiring a number of parameters
+ linear in the number of variables (features/predictors) in a learning problem.
+ Maximum-likelihood training can be done by evaluating a closed-form expression,
+ which takes linear time, rather than by expensive iterative approximation
+ as used for many other types of classifiers.
+\end_layout
+
+\begin_layout Section
+Algorithm Implementation and Development
+\end_layout
+
+\begin_layout Standard
+Similar algorithms are used for each of the test cases, as given below.
+\end_layout
+
+\begin_layout Itemize
+Compile a set containing 5 second snippets of 15 songs per band/genre and
+ save as a wav file downsampled to 11kHz and converted to mono for smaller
+ size.
+\end_layout
+
+\begin_layout Itemize
+Load wav files in matlab using wavread.
+ Convert wav data into single precision float using single function.
+\end_layout
+
+\begin_layout Itemize
+Create a spectrogram of each wav file.
+ This is not elaborated upon as an entire HW report dedicated entirely to
+ this process was written by the author (HW 2: Gabor transforms).
+\end_layout
+
+\begin_layout Itemize
+Reshape each spectrogram such that the time-frequency data of each song
+ snippet is contained in one single row.
+\end_layout
+
+\begin_layout Itemize
+Create a new matrix Sgtot which contains the spectrogram data of each song,
+ with songs of each band/genre being grouped together.
+\end_layout
+
+\begin_layout Itemize
+Perform an 'economy' singular value decomposition of Sgtot, using the flag
+ 
+\begin_inset Formula $'0'$
+\end_inset
+
+ in the function svd.
+ The 
+\begin_inset Formula $'V'$
+\end_inset
+
+ matrix is a dimensionally lower matrix and can be used in machine learning
+ algorithms efficiently.
+ The rows of the matrix are the song snippets and the columns are the modes
+ or the principal components.
+\end_layout
+
+\begin_layout Itemize
+Choose ten songs of each band/genre randomly (without replacement) for the
+ training set.
+ The remaining five songs become the test set.
+ 
+\end_layout
+
+\begin_layout Itemize
+Stack up the songs of the training set in a matrix, with a certain number
+ of modes chosen (this is a variable to be adjusted to get maximum accuracy).
+\end_layout
+
+\begin_layout Itemize
+Do likewise with the test set.
+\end_layout
+
+\begin_layout Itemize
+Construct a matrix which characterizes the answers to the training set,
+ with each band/genre being assigned a number of 1, 2 or 3.
+\end_layout
+
+\begin_layout Itemize
+The training set, test set and the answers to the training set are passed
+ to the classify function and the NaiveBayes function (followed by the predict
+ function).
+\end_layout
+
+\begin_layout Itemize
+Calculate the cumulative error in identifying songs of every band/genre
+ by comparing the actual answers to the predicted answers of the test set.
+\end_layout
+
+\begin_layout Itemize
+Calculate the error by band/genre also.
+\end_layout
+
+\begin_layout Itemize
+Repeat steps 7-13 one thousand times.
+ Average the error over the 1000 iterations.
+\end_layout
+
+\begin_layout Itemize
+Adjust the number of principal components used, and repeat steps 7-14 until
+ the accuracy is maximized.
+\end_layout
+
+\begin_layout Section
+Computational Results
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\noindent
+\begin_inset Graphics
+	filename Floydfirst.png
+	width 12cm
+
+\end_inset
+
+
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Spectrogram of eight five second samples of Pink Floyd songs
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Figure 1 shows the spectrogram generated by a sample of five second snippets
+ of eight Pink Floyd songs.
+ Gilmour's lead guitar is seen to be composed of several overtones, as seen
+ in 0-5 secs, 15-20 secs and 25-30 secs (guitar solos in Breathe, Time and
+ Dogs).
+ Other, relatively quieter songs such as Fearless (10-15 secs) and San Tropez
+ (35-40 secs) do not seem to have many overtones, since the lead guitar
+ is not present in those pieces.
+\end_layout
+
+\begin_layout Standard
+The individual results of the three tests are described below.
+ 
+\end_layout
+
+\begin_layout Subsection
+Test 1: Pink Floyd, John Coltrane and Nirvana
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset space \hfill{}
+\end_inset
+
+
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename correct.png
+	width 4cm
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Actual grouping
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset space \hfill{}
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset space \hfill{}
+\end_inset
+
+
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename 1_lda.png
+	width 4cm
+
+\end_inset
+
+
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Grouping predicted by LDA
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset space \hfill{}
+\end_inset
+
+
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename 1_nbs.png
+	width 4cm
+
+\end_inset
+
+
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Grouping predicted by Naive Bayes
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset space \hfill{}
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Histograms showing actual and predicted grouping of test songs 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The three bands are all of distinctly different genres, so we expect that
+ both machine learning algorithms would give a reasonably good classification.
+ Indeed, we see that this is the case, though LDA outperforms the naive
+ Bayes classifier algorithm.
+ the average accuracy for the naive Bayes in prediction is 
+\begin_inset Formula $66.60\%$
+\end_inset
+
+ with a standard deviation of 
+\begin_inset Formula $9.82$
+\end_inset
+
+, while that of the LDA is 
+\begin_inset Formula $78.20\%$
+\end_inset
+
+ with a standard deviation of 
+\begin_inset Formula $9.93\%$
+\end_inset
+
+.
+ Figure 2 shows the actual and predicted grouping of test songs from one
+ simulation.
+ Good prediction is observed, especially for the first and second bands
+ (Pink Floyd and John Coltrane).
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename bands1.png
+	width 7cm
+
+\end_inset
+
+
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+% Accuracy for individual bands
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Figure 3 shows the percentage accuracy averaged over 100 tests for each
+ individual band.
+ Accuracy for Pink Floyd and John Coltrane is seen to be very high, but
+ observed to be low for Nirvana.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename modes1.png
+	width 7cm
+
+\end_inset
+
+
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Accuracy as a function of number of modes used for classification
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Tests were also run with a different number of principal components used
+ to train the algorithm.
+ The number of modes used to train and test both algorithms was varied from
+ 1 to 10.
+ This is shown in Figure 4.
+ It is seen that LDA generally gives better accuracy than naive Bayes, and
+ the accuracy peak at 4 principal components for the LDA and 1 principal
+ component for naive Bayes.
+\end_layout
+
+\begin_layout Subsection
+Test 2: Pearl Jam, Soundgarden and Nirvana
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset space \hfill{}
+\end_inset
+
+
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename correct.png
+	width 4cm
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Actual grouping
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset space \hfill{}
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset space \hfill{}
+\end_inset
+
+
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename 2_alda.png
+	width 4cm
+
+\end_inset
+
+
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Grouping predicted by LDA
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset space \hfill{}
+\end_inset
+
+
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename 2_a_nb.png
+	width 4cm
+
+\end_inset
+
+
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Grouping predicted by Naive Bayes
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset space \hfill{}
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Histograms showing actual and predicted grouping of test songs 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Since all three bands are from the same genre(grunge), the same geographical
+ area(Seattle) and roughly the same time(90's), we expect roughly the same
+ musical qualities in each band.
+ Both the LDA and naive Bayes show that this is the case; the average accuracy
+ for the naive Bayes in prediction is 
+\begin_inset Formula $43.33\%$
+\end_inset
+
+ with a standard deviation of 
+\begin_inset Formula $10.56\%$
+\end_inset
+
+, while that of the LDA is 
+\begin_inset Formula $50.33\%$
+\end_inset
+
+ with a standard deviation of 
+\begin_inset Formula $10.85\%$
+\end_inset
+
+.
+ Figure 5 shows the actual and predicted grouping of test songs from one
+ simulation.
+ No real prediction is observed.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename SGNPJ.png
+	width 7cm
+
+\end_inset
+
+
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+% Accuracy for individual bands
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Figure 6 shows the percentage accuracy averaged over 100 tests for each
+ individual band.
+ The accuracy for all three hovers around 50%.
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename accvsmodes2.png
+	width 7cm
+
+\end_inset
+
+
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Accuracy as a function of number of modes used for classification
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Tests were also run with a different number of principal components used
+ to train the algorithm.
+ The number of modes used to train and test both algorithms was varied from
+ 1 to 10.
+ This is shown in Figure 7.
+ It is seen that LDA generally gives better accuracy than naive Bayes, and
+ the accuracy peak at 6 principal components for the LDA and 3 principal
+ components for naive Bayes.
+\end_layout
+
+\begin_layout Subsection
+Test 3: Jazz, Classic Rock and Grunge
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset space \hfill{}
+\end_inset
+
+
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename correct.png
+	width 4cm
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Actual grouping
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset space \hfill{}
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset space \hfill{}
+\end_inset
+
+
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename 3_lba.png
+	width 4cm
+
+\end_inset
+
+
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Grouping predicted by LDA
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset space \hfill{}
+\end_inset
+
+
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename 3_nb.png
+	width 4cm
+
+\end_inset
+
+
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Grouping predicted by Naive Bayes
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset space \hfill{}
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Histograms showing actual and predicted grouping of test songs 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The final test involve testing songs by several artists in three different
+ genres.
+ The genres chosen are jazz, classic rock and grunge.
+ The average accuracy for the naive Bayes in prediction is 
+\begin_inset Formula $67.00\%$
+\end_inset
+
+ with a standard deviation of 
+\begin_inset Formula $11.11\%$
+\end_inset
+
+, while that of the LDA is 
+\begin_inset Formula $65.2\%$
+\end_inset
+
+ with a standard deviation of 
+\begin_inset Formula $10.09\%$
+\end_inset
+
+.
+ Figure 8 shows the actual and predicted grouping of test songs from one
+ simulation.
+ In this case, it is seen that the LDA and naive Bayes predict approximately
+ the same level of accuracy.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename 3_bandcomp.png
+	width 7cm
+
+\end_inset
+
+
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+% Accuracy for individual genres
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Figure 9 shows the percentage accuracy averaged over 100 tests for each
+ individual band.
+ The accuracy for jazz is quite high (approximately 80%), while that of
+ classic rock is lower (60%) and that of grunge is scraping the bottom of
+ the barrel (50%).
+ We'd do about the same if we flipped a coin.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename 3ndalbs.png
+	width 7cm
+
+\end_inset
+
+
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Accuracy as a function of number of modes used for classification
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Tests were also run with a different number of principal components used
+ to train the algorithm.
+ The number of modes used to train and test both algorithms was varied from
+ 1 to 10.
+ This is shown in Figure 10.
+ Unlike the first two cases, there is clear cut winner between LDA and naive
+ Bayes.
+ The accuracy peaks at 4 principal components for the LDA and 2 principal
+ components for naive Bayes.
+\end_layout
+
+\begin_layout Section
+Summary and Conclusions
+\end_layout
+
+\begin_layout Standard
+Two machine learning algorithms, the LDA and the naive Bayes classifier
+ are applied to the problem of identifying musical genres.
+ Three analyses are conducted, one with three bands/musicians belonging
+ to three distinct genres, the second with three bands belonging to the
+ same genre, and the third with several bands belonging to three distinct
+ genres.
+ 
+\end_layout
+
+\begin_layout Standard
+It is found that the LDA performs better than the naive Bayes classifier
+ in two out of three tests.
+ Another interesting result is that the inclusion of all principal components
+ is not necessary for a good prediction model; 3-5 modes generally give
+ the highest accuracy.
+ Jazz music is exceedingly well-predicted by both algorithms over a large
+ number of artists and styles; this confirms the authors' suspicions that
+ all that jazz is, in fact, the same frickin' thing, and leads him to question
+ the musical taste of jazz lovers across the world.
+\end_layout
+
+\begin_layout Standard
+For the first test, the average accuracy for the naive Bayes in prediction
+ is 
+\begin_inset Formula $66.60\%$
+\end_inset
+
+ with a standard deviation of 
+\begin_inset Formula $9.82$
+\end_inset
+
+, while that of the LDA is 
+\begin_inset Formula $78.20\%$
+\end_inset
+
+ with a standard deviation of 
+\begin_inset Formula $9.93\%$
+\end_inset
+
+.
+ Pink Floyd and John Coltrane have accuracies of approximately 75% and 83%,
+ respectively, while Nirvana has a lower accuracy of about 50% (LDA).
+\end_layout
+
+\begin_layout Standard
+For the second test, the average accuracy for the naive Bayes in prediction
+ is 
+\begin_inset Formula $43.33\%$
+\end_inset
+
+ with a standard deviation of 
+\begin_inset Formula $10.56\%$
+\end_inset
+
+, while that of the LDA is 
+\begin_inset Formula $50.33\%$
+\end_inset
+
+ with a standard deviation of 
+\begin_inset Formula $10.85\%$
+\end_inset
+
+.
+ The prediction accuracies of all bands is approximately 50% with the LDA.
+\end_layout
+
+\begin_layout Standard
+For the third test, the average accuracy for the naive Bayes in prediction
+ is 
+\begin_inset Formula $67.00\%$
+\end_inset
+
+ with a standard deviation of 
+\begin_inset Formula $11.11\%$
+\end_inset
+
+, while that of the LDA is 
+\begin_inset Formula $65.2\%$
+\end_inset
+
+ with a standard deviation of 
+\begin_inset Formula $10.09\%$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Section*
+References
+\end_layout
+
+\begin_layout Enumerate
+Kutz, J.
+ Nathan, Data-Driven Modeling & Scientific Computation: Methods for Complex
+ Systems & Big Data, September 2013
+\end_layout
+
+\begin_layout Enumerate
+Matlab help
+\end_layout
+
+\begin_layout Section*
+Appendix I: MATLAB functions used
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+wavread
+\family default
+: reads wave file into MATLAB
+\end_layout
+
+\begin_layout Itemize
+
+\family typewriter
+y = wavread(filename)
+\family default
+ loads a WAVE file specified by the string filename, returning the sampled
+ data in y.
+ If filename does not include an extension, 
+\family typewriter
+wavread
+\family default
+ appends .wav
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+fft
+\family default
+: One dimensional discrete Fourier transform
+\end_layout
+
+\begin_layout Itemize
+
+\family typewriter
+Y = fft(x)
+\family default
+ returns the discrete Fourier transform (DFT) of vector x, computed with
+ a fast Fourier transform (FFT) algorithm.
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+svd
+\family default
+: Singular value decomposition.
+ 
+\end_layout
+
+\begin_layout Itemize
+
+\family typewriter
+[U,S,V] = svd(X)
+\family default
+ produces a diagonal matrix S, of the same dimension as X and with nonnegative
+ diagonal elements in decreasing order, and unitary matrices U and V so
+ that 
+\family typewriter
+X = U*S*V'.
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+single
+\family default
+: Convert to single precision.
+ 
+\end_layout
+
+\begin_layout Itemize
+
+\family typewriter
+Y = single(X)
+\family default
+ converts the vector X to single precision.
+ X can be any numeric object (such as a DOUBLE).
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+classify
+\family default
+: Discriminant analysis.
+ 
+\end_layout
+
+\begin_layout Itemize
+
+\family typewriter
+CLASS = classify(SAMPLE,TRAINING,GROUP)
+\family default
+ classifies each row of the data in 
+\family typewriter
+SAMPLE
+\family default
+ into one of the groups in TRAINING.
+ SAMPLE and TRAINING must be matrices with the same number of columns.
+ GROUP is a grouping variable for TRAINING.
+ Its unique values define groups, and each element defines which group the
+ corresponding row of TRAINING belongs to.
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+fitNaiveBayes
+\family default
+: Create a Naive Bayes classifier object by fitting to data.
+\end_layout
+
+\begin_layout Itemize
+
+\family typewriter
+NB = fitNaiveBayes(TRAINING, C)
+\family default
+ builds a NaiveBayes classifier object NB.
+ TRAINING is an N-by-D numeric matrix of predictor data.
+ Rows of TRAINING correspond to observations; columns correspond to features.
+ C contains the known class labels for TRAINING, and it take one of K possible
+ levels.
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+predict
+\family default
+: Computes the k-step ahead prediction.
+\end_layout
+
+\begin_layout Itemize
+
+\family typewriter
+YP = predict(MODEL, DATA, K) 
+\family default
+predicts the output of an identified model MODEL K time instants ahead using
+ input-output data history from DATA.
+ The predicted response is computed for the time span covered by DATA.
+\end_layout
+
+\end_body
+\end_document
