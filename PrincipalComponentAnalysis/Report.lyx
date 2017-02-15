@@ -1,0 +1,1222 @@
+#LyX 2.1 created this file. For more info see http://www.lyx.org/
+\lyxformat 474
+\begin_document
+\begin_header
+\textclass article
+\use_default_options true
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_math auto
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 1
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+HW 4 : Principal Component Analysis
+\end_layout
+
+\begin_layout Author
+Anamol Pundle
+\end_layout
+
+\begin_layout Abstract
+The process and results of applying Principal Component Analysis (PCA) to
+ videos of an oscillating mass taken by three cameras placed at different
+ locations simultaneously is documented in this report.
+ The oscillating mass is tracked using the flashlight placed on top of it
+ and the position of the mass obtained from each camera is saved.
+ Some of the data is found to be phase shifted, and is brought back into
+ phase.
+ This data is integrated into one matrix and a singular value decomposition(SVD)
+ is performed on it.
+ The data is analyzed in various ways, such as and the effect of PCA on
+ the data is ascertained.
+ The results of the SVD of each set of videos are also compared to each
+ other.
+\end_layout
+
+\begin_layout Section
+Introduction and Overview
+\end_layout
+
+\begin_layout Standard
+Principal component analysis (PCA) is a statistical procedure that uses
+ an orthogonal transformation to convert a set of observations of possibly
+ correlated variables into a set of values of linearly uncorrelated variables
+ called principal components.
+ The number of principal components is less than or equal to the number
+ of original variables.
+ This transformation is defined in such a way that the first principal component
+ has the largest possible variance (that is, accounts for as much of the
+ variability in the data as possible), and each succeeding component in
+ turn has the highest variance possible under the constraint that it is
+ orthogonal to (i.e., uncorrelated with) the preceding components.
+ The principal components are orthogonal because they are the eigenvectors
+ of the covariance matrix, which is symmetric.
+ 
+\end_layout
+
+\begin_layout Standard
+Four tests are performed on an oscillating mass (can).
+ The can is moved, and is filmed by three cameras simultaneously.
+ In the first test (ideal case), the can executes simple harmonic motion
+ in the 
+\begin_inset Formula $z$
+\end_inset
+
+ direction.
+ In the second test, the can again undergoes SHM, but noise in introduced
+ into the images due to a slight shake of the camera.
+ In the third test, the mass is released off-center so as to produce motion
+ in the x−y plane as well as the z direction.
+ Thus there is both a pendulum motion and a simple harmonic oscillations.
+ In the fourth test, the mass is released off-center and rotates so as to
+ produce motion in the x−y plane, rotation as well as the z direction.
+ Thus there is both a pendulum motion and a simple harmonic oscillations.
+ 
+\end_layout
+
+\begin_layout Section
+Theoretical Background
+\end_layout
+
+\begin_layout Standard
+Singular Value Decomposition is a useful tool using which any matrix can
+ be written as the product of a unitary matrix 
+\begin_inset Formula $U$
+\end_inset
+
+, a rectangular diagonal matrix with non-negative diagonal elements 
+\begin_inset Formula $S$
+\end_inset
+
+ and the conjugate transpose of another unitary matrix 
+\begin_inset Formula $V$
+\end_inset
+
+, 
+\begin_inset Formula $V^{*}$
+\end_inset
+
+.
+ The matrices 
+\begin_inset Formula $U$
+\end_inset
+
+ and 
+\begin_inset Formula $V^{*}$
+\end_inset
+
+ are rotational matrices, while 
+\begin_inset Formula $S$
+\end_inset
+
+ is a stretching matrix.
+ Every matrix has a singular value decomposition, and the singular values
+ are uniquely determined.
+ Several methods can be used to calculate the SVD.
+ The SVD can be used to diagonalize a matrix, if the proper bases for the
+ domain and range are used.
+ Several useful theorems and ways to calculate the SVD are given in reference
+ [1].
+ The SVD gives a type of least-square fitting algorithm, allowing us to
+ project the matrix onto low-dimensional representations in a formal, algorithmi
+c way.
+\end_layout
+
+\begin_layout Standard
+PCA is the simplest of the true eigenvector-based multivariate analyses.
+ Often, its operation can be thought of as revealing the internal structure
+ of the data in a way that best explains the variance in the data.
+ If a multivariate dataset is visualized as a set of coordinates in a high-dimen
+sional data space (1 axis per variable), PCA can supply the user with a
+ lower-dimensional picture, a projection or "shadow" of this object when
+ viewed from its most informative viewpoint.
+ This is done by using only the first few principal components so that the
+ dimensionality of the transformed data is reduced.
+ Redundant data can also be identified using the covariant matrix.
+ The diagonal terms of the covariant matrix are the measure variance for
+ particular measurements.
+ By assumption, large variances correspond to dynamics of interest, whereas
+ low variances are assumed to correspond to non-interesting dynamics.
+ The off-diagonal terms of the covariant matrix are the covariance between
+ measurements.
+ Indeed, the off-diagonals captures the correlations between all possible
+ pairs of measurements.
+ A large off-diagonal term represents two events that have a high-degree
+ of redundancy, whereas a small off-diagonal coefficient means there is
+ little redundancy in the data, i.e.
+ they are statistically independent.
+\end_layout
+
+\begin_layout Section
+Algorithm Implementation and Development
+\end_layout
+
+\begin_layout Standard
+Similar algorithms are used to extract the position of the can from the
+ videos for each test case.
+ PCA is then performed on the extracted data, and the results are post-processed.
+\end_layout
+
+\begin_layout Itemize
+Load videos from the given .mat files.
+ Each video file is saved in a 4D matrix.
+ Find the size of each frame and the number of frames of each video.
+ 
+\end_layout
+
+\begin_layout Itemize
+Convert the videos from RGB to grayscale.
+\end_layout
+
+\begin_layout Itemize
+Isolate the portions of the video where the movement of the can occurs.
+ This is done by setting all pixels except a small window to zero(black).
+\end_layout
+
+\begin_layout Itemize
+Since the oscillating can has a flashlight on top, search the window for
+ the maximum intensity pixel, using the 
+\family typewriter
+max
+\family default
+ function.
+\end_layout
+
+\begin_layout Itemize
+Convert the index obtained from the previous step to 
+\begin_inset Formula $(x,y)$
+\end_inset
+
+ using the 
+\family typewriter
+ind2sub
+\family default
+ function.
+ Save each 
+\begin_inset Formula $x$
+\end_inset
+
+ and 
+\begin_inset Formula $y$
+\end_inset
+
+ separately to a 
+\begin_inset Formula $X$
+\end_inset
+
+ and 
+\begin_inset Formula $Y$
+\end_inset
+
+ vector.
+\end_layout
+
+\begin_layout Itemize
+Align the position of the can in each video to the same array index.
+ The is done because the data may be phase shifted, and is done by searching
+ for the index 
+\begin_inset Formula $i$
+\end_inset
+
+ of the minimum position of the can in the first 50 steps, and truncating
+ all data before 
+\begin_inset Formula $i$
+\end_inset
+
+ and after 
+\begin_inset Formula $i+200$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Itemize
+Clean each 
+\begin_inset Formula $X$
+\end_inset
+
+ and 
+\begin_inset Formula $Y$
+\end_inset
+
+ vector using a Shannon window in the frequency domain.
+\end_layout
+
+\begin_layout Itemize
+Create a matrix 
+\begin_inset Formula $A$
+\end_inset
+
+ where each row is the 
+\begin_inset Formula $X$
+\end_inset
+
+ and 
+\begin_inset Formula $Y$
+\end_inset
+
+ vectors.
+\end_layout
+
+\begin_layout Itemize
+Perform a singular value decomposition on 
+\begin_inset Formula $A$
+\end_inset
+
+.
+ The 
+\begin_inset Formula $u$
+\end_inset
+
+, 
+\begin_inset Formula $s$
+\end_inset
+
+ and 
+\begin_inset Formula $v$
+\end_inset
+
+ matrices are obtained in this manner.
+\end_layout
+
+\begin_layout Itemize
+Analyze resulting data, such as plotting mode projections, the relative
+ energy of each mode, predictions of 
+\begin_inset Formula $X$
+\end_inset
+
+ and 
+\begin_inset Formula $Y$
+\end_inset
+
+ using an increasing number of modes, and looking at the covariant m
+\end_layout
+
+\begin_layout Section
+Computational Results
+\end_layout
+
+\begin_layout Subsection
+Test 1
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename HW5/Org1.png
+	width 14cm
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+\begin_inset Formula $X$
+\end_inset
+
+ and 
+\begin_inset Formula $Y$
+\end_inset
+
+ position of can per frame for Test 1.
+ Black is raw data and blue is smoothed data; (Top Row) camera 1 (Mid Row);
+ camera 2; (Bottom Row) camera 3
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Figure 1 shows the raw data extracted from the three different cameras,
+ along with the extracted data smoothed with the Shannon window.
+ The black line shows raw data, while the blue line shows data smoothed
+ using the Shannon window.
+ The can is seen to oscillate along the Y direction in the footage from
+ cameras 1 and 2.
+ In the third camera, the direction of oscillation is in the X direction.
+ The can is mostly steady in the X direction (Y direction for camera 3).
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename HW5/Modes1.png
+	width 10cm
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Energy of each mode obtained after SVD for Test 1
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Figure 2 shows the energy of each mode, which is obtained from the diagonal
+ of the 
+\begin_inset Formula $s$
+\end_inset
+
+ matrix.
+ It is observed that about 97% of the energy is contained in the first two
+ modes, with 87% being contained in the first mode.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename HW5/New1.png
+	width 14cm
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+\begin_inset Formula $X$
+\end_inset
+
+ and 
+\begin_inset Formula $Y$
+\end_inset
+
+ positions recreated from first 2 modes of SVD for Test 1; (Top Row) camera
+ 1 (Mid Row); camera 2; (Bottom Row) camera 3
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Figure 3 shows the position of the can extracted after performing SVD on
+ the A matrix, recreated using the first two modes.
+ Good agreement is observed, compared to Figure 1.
+ Another observation concerns spikes which are observed in one camera's
+ data and not in the others.
+ The first two modes of the SVD show these spikes in the other camera's
+ data too.
+ Hence, the SVD tool may be used as a tool to make data from sensors that
+ are measuring the same quantity more uniform.
+ When the position of the can obtained from the SVD is plotted on top of
+ the original video, the pointer follows the can quite closely.
+\end_layout
+
+\begin_layout Subsection
+Test 2
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename HW5/Org2.png
+	width 14cm
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+\begin_inset Formula $X$
+\end_inset
+
+ and 
+\begin_inset Formula $Y$
+\end_inset
+
+ position of can per frame for Test 2.
+ Black is raw data and blue is smoothed data; (Top Row) camera 1 (Mid Row);
+ camera 2; (Bottom Row) camera 3
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Figure 4 shows the raw data extracted from the three different cameras for
+ test 2, along with the extracted data smoothed with the Shannon window.
+ The black line shows raw data, while the blue line shows data smoothed
+ using the Shannon window.
+ All cameras are shaking while capturing the images, due to which the data
+ is noisy.
+ The can is seen to oscillate along the Y direction in the footage from
+ cameras 1 and 2.
+ In the third camera, the direction of oscillation is in the X direction.
+ Spikes seen in the data are the places where the point of maximum intensity
+ shifts from the flashlight to a different area.
+ Hence, this method is not completely foolproof.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename HW5/Modes2.png
+	width 10cm
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Energy of each mode obtained after SVD for Test 2
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Figure 2 shows the energy of each mode, which is obtained from the diagonal
+ of the 
+\begin_inset Formula $s$
+\end_inset
+
+ matrix.
+ It is observed that about 95% of the energy is contained in the first three
+ modes, with 82% being contained in the first mode.
+ This is smaller compared to the first test case, possibly due to excessive
+ noise in the system.
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename HW5/New2.png
+	width 14cm
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+\begin_inset Formula $X$
+\end_inset
+
+ and 
+\begin_inset Formula $Y$
+\end_inset
+
+ positions recreated from first 3 modes of SVD for Test 2; (Top Row) camera
+ 1 (Mid Row); camera 2; (Bottom Row) camera 3
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Figure 3 shows the position of the can extracted after performing SVD on
+ the A matrix, recreated using the first three modes.
+ Good agreement is observed, compared to Figure 4.
+ When the position of the can obtained from the SVD is plotted on top of
+ the original video, the pointer does not quite follow the can closely;
+ hence this method of tracking the can does not work well when there is
+ noise in the system.
+\end_layout
+
+\begin_layout Subsection
+Test 3
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename HW5/Org3.png
+	width 14cm
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+\begin_inset Formula $X$
+\end_inset
+
+ and 
+\begin_inset Formula $Y$
+\end_inset
+
+ position of can per frame for Test 3.
+ Black is raw data and blue is smoothed data; (Top Row) camera 1 (Mid Row);
+ camera 2; (Bottom Row) camera 3
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Figure 7 shows the raw data extracted from the three different cameras for
+ test 2, along with the extracted data smoothed with the Shannon window.
+ The black line shows raw data, while the blue line shows data smoothed
+ using the Shannon window.
+ In this case, the can is not executing simple harmonic motion in the 
+\begin_inset Formula $z$
+\end_inset
+
+ direction, but is also moving in the 
+\begin_inset Formula $x$
+\end_inset
+
+ and 
+\begin_inset Formula $y$
+\end_inset
+
+directions.
+ The can is mostly steady in the X direction (Y direction for camera 3).
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename HW5/Modes3.png
+	width 10cm
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Energy of each mode obtained after SVD for Test 3
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Figure 8 shows the energy of each mode, which is obtained from the diagonal
+ of the 
+\begin_inset Formula $s$
+\end_inset
+
+ matrix.
+ It is observed that about 97% of the energy is contained in the first three
+ modes, with 85% being contained in the first mode.
+ This is smaller compared to the first test case, possibly due to the can
+ not executing simple harmonic motion, but moving in the 
+\begin_inset Formula $x-y$
+\end_inset
+
+ plane as well.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename HW5/New3.png
+	width 14cm
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+\begin_inset Formula $X$
+\end_inset
+
+ and 
+\begin_inset Formula $Y$
+\end_inset
+
+ positions recreated from first 3 modes of SVD for Test 3; (Top Row) camera
+ 1 (Mid Row); camera 2; (Bottom Row) camera 3
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Figure 9 shows the position of the can extracted after performing SVD on
+ the A matrix, recreated using the first three modes.
+ Good agreement is observed, compared to Figure 7.
+ When the position of the can obtained from the SVD is plotted on top of
+ the original video, the pointer follows the can closely; hence this method
+ of tracking works well when there the motion is not purely simple harmonic.
+\end_layout
+
+\begin_layout Subsection
+Test 4
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename HW5/Org4.png
+	width 14cm
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+\begin_inset Formula $X$
+\end_inset
+
+ and 
+\begin_inset Formula $Y$
+\end_inset
+
+ position of can per frame for Test 4.
+ Black is raw data and blue is smoothed data; (Top Row) camera 1 (Mid Row);
+ camera 2; (Bottom Row) camera 3
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Figure 10 shows the raw data extracted from the three different cameras
+ for test 2, along with the extracted data smoothed with the Shannon window.
+ The black line shows raw data, while the blue line shows data smoothed
+ using the Shannon window.
+ In this case, the can is not executing simple harmonic motion in the 
+\begin_inset Formula $z$
+\end_inset
+
+ direction, but is also moving in the 
+\begin_inset Formula $x$
+\end_inset
+
+ and 
+\begin_inset Formula $y$
+\end_inset
+
+directions, as well as rotating along its axis.
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename HW5/Modes4.png
+	width 10cm
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Energy of each mode obtained after SVD for Test 4
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Figure 11 shows the energy of each mode, which is obtained from the diagonal
+ of the 
+\begin_inset Formula $s$
+\end_inset
+
+ matrix.
+ It is observed that about 93% of the energy is contained in the first three
+ modes, with 85% being contained in the first mode.
+ This is smaller compared to the first test case, possibly due to the can
+ not executing simple harmonic motion, but moving in the 
+\begin_inset Formula $x-y$
+\end_inset
+
+ plane as well as rotating.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename HW5/New4.png
+	width 14cm
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+\begin_inset Formula $X$
+\end_inset
+
+ and 
+\begin_inset Formula $Y$
+\end_inset
+
+ positions recreated from first 3 modes of SVD for Test 4; (Top Row) camera
+ 1 (Mid Row); camera 2; (Bottom Row) camera 3
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Figure 12 shows the position of the can extracted after performing SVD on
+ the A matrix, recreated using the first three modes.
+ Good agreement is observed, compared to Figure 10.
+ Another observation concerns spikes which are observed in one camera's
+ data and not in the others.
+ The first two modes of the SVD show these spikes in the other camera's
+ data too.
+ Hence, the SVD tool may be used as a tool to make data from sensors that
+ are measuring the same quantity more uniform.
+ When the position of the can obtained from the SVD is plotted on top of
+ the original video, the pointer follows the can quite closely.
+\end_layout
+
+\begin_layout Section
+Summary and Conclusion
+\end_layout
+
+\begin_layout Standard
+The technique of Principal Component Analysis is applied to videos of an
+ oscillating mass, with different tests done for the ideal case of pure
+ SHM, noise due to shaking of the camera, motion in the horizontal plane
+ along with oscillations in the vertical plane, and motion in all planes
+ along with rotation of the mass along its vertical axis.
+ The mass was tracked by creating a window around the area where the mass
+ moves, and finding the maximum intensity in that window for each frame.
+ The singular value decomposition of data yielded six modes.
+ It was found that the first mode contains greater than 82% of the energy
+ for all tests, and three modes are sufficient to recreate the motion to
+ 92% accuracy in the worst case.
+ The PCA did best in the ideal case, where two modes were sufficient, giving
+ 97% accuracy.
+ The worst case was test 2, when noise was introduced through the random
+ motion of the camera (aka shaking).
+ In this case, the first mode contained 82% of the total energy.
+ An interesting point noted was that spikes which were picked up by one
+ camera and not by the others appeared in other cameras in the two- or three-mod
+e recreation of the motion using SVD.
+ 
+\end_layout
+
+\begin_layout Section*
+References
+\end_layout
+
+\begin_layout Enumerate
+Kutz, J.
+ Nathan, Data-Driven Modeling & Scientific Computation: Methods for Complex
+ Systems & Big Data, September 2013
+\end_layout
+
+\begin_layout Enumerate
+Matlab help
+\end_layout
+
+\begin_layout Section*
+Appendix I: MATLAB functions used
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+load
+\family default
+: Load data from MAT-file into workspace.
+\end_layout
+
+\begin_layout Itemize
+
+\family typewriter
+S = load(FILENAME)
+\family default
+ loads the variables from a MAT-file into a structure array, or data from
+ an ASCII file into a double-precision array.
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+frame2im
+\family default
+: Return image data associated with movie frame.
+\end_layout
+
+\begin_layout Itemize
+
+\family typewriter
+[X,MAP] = frame2im(F) 
+\family default
+returns the indexed image X and associated colormap MAP from the single
+ movie frame F.
+ 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+rgb2gray
+\family default
+: Convert RGB image or colormap to grayscale.
+ 
+\family typewriter
+rgb2gray
+\family default
+ converts RGB images to grayscale by eliminating the hue and saturation
+ information while retaining the luminance.
+\end_layout
+
+\begin_layout Itemize
+
+\family typewriter
+I = rgb2gray(RGB)
+\family default
+ converts the truecolor image RGB to the grayscale intensity image I.
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+ind2sub
+\family default
+: Multiple subscripts from linear index.
+ 
+\family typewriter
+ind2sub
+\family default
+ is used to determine the equivalent subscript values corresponding to a
+ given single index into an array.
+ 
+\end_layout
+
+\begin_layout Itemize
+
+\family typewriter
+[I,J] = ind2sub(SIZ,IND)
+\family default
+ returns the arrays I and J containing the equivalent row and column subscripts
+ corresponding to the index matrix IND for a matrix of size SIZ.
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+svd
+\family default
+: Singular value decomposition.
+ 
+\end_layout
+
+\begin_layout Itemize
+
+\family typewriter
+[U,S,V] = svd(X)
+\family default
+ produces a diagonal matrix S, of the same dimension as X and with nonnegative
+ diagonal elements in decreasing order, and unitary matrices U and V so
+ that 
+\family typewriter
+X = U*S*V'.
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+diag
+\family default
+: Diagonal matrices and diagonals of a matrix.
+ 
+\end_layout
+
+\begin_layout Itemize
+
+\family typewriter
+diag(V,K)
+\family default
+ when V is a vector with N components is a square matrix of order N+ABS(K)
+ with the elements of V on the K-th diagonal.
+ K = 0 is the main diagonal, K > 0 is above the main diagonal and K < 0
+ is below the main diagonal.
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+imshow
+\family default
+: displays image
+\end_layout
+
+\begin_layout Itemize
+
+\family typewriter
+imshow(I)
+\family default
+ displays the image I in a Handle Graphics figure, where I is a grayscale,
+ RGB (truecolor), or binary image.
+ For binary images, 
+\family typewriter
+imshow
+\family default
+ displays pixels with the value 0 (zero) as black and 1 as white.
+\end_layout
+
+\end_body
+\end_document

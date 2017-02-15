@@ -1,0 +1,2940 @@
+#LyX 2.1 created this file. For more info see http://www.lyx.org/
+\lyxformat 474
+\begin_document
+\begin_header
+\textclass article
+\use_default_options true
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman cmr
+\font_sans default
+\font_typewriter default
+\font_math auto
+\font_default_family rmdefault
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 1
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\leftmargin 3cm
+\topmargin 2cm
+\rightmargin 2cm
+\bottommargin 2cm
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+HW 2: Gábor Transforms
+\end_layout
+
+\begin_layout Author
+Anamol Pundle
+\end_layout
+
+\begin_layout Abstract
+The process and results of generating a spectrogram from audio signals using
+ a windowed Fourier transform(Gábor transform) is described in this report.
+ Three audio signals of varying length and sampling rate are considered.
+ A time-filtering window is constructed and translated across the audio
+ signals.
+ A spectrogram is then generated from the Fourier transform of each snapshot
+ taken by the time filtering window.
+ Several types of functions are used as the time-filtering window, and the
+ results from each are analyzed.
+ The effect of several other parameters, such as the window width and time
+ step of the window (oversampling vs.
+ undersampling) on the spectrogram are also explored.
+\end_layout
+
+\begin_layout Section
+Introduction and Overview
+\end_layout
+
+\begin_layout Standard
+Time frequency analysis comprises of techniques that simultaneously study
+ a signal in time domain and frequency domain.
+ This is useful for analyzing audio signals, since they include several
+ frequencies (and their overtones) played at different moments in time.
+ In this work, three audio signals are analyzed using time frequency analysis
+ and their spectrograms are created.
+ The audio signals are the Hallelujah chorus from Handel's 'Messiah', and
+ renderings of the popular nursery rhyme 'Mary had a Little Lamb' on piano
+ and recorder.
+ 
+\end_layout
+
+\begin_layout Standard
+Spectrograms of the audio signals are created by implementing the Gábor
+ transform, using different functions as the sliding window.
+ The effect of various parameters, such as the window width, oversampling,
+ undersampling and different functions on the spectrogram is explored.
+ The musical score for 'Mary had a Little Lamb' is also generated using
+ the Gábor transform.
+ The differences between the spectral signature of the piano and the recorder
+ is analyzed by studying the spectrogram of the two versions of 'Mary had
+ a Little Lamb'.
+ 
+\end_layout
+
+\begin_layout Section
+Theoretical Background
+\end_layout
+
+\begin_layout Subsection
+Time Frequency Analysis and Windowed Fourier Transforms
+\end_layout
+
+\begin_layout Standard
+The Fourier transform is one of the most important tools in signal processing,
+ but it has severe limitations.
+ While the Fourier transform captures all the frequency information of the
+ signal, it fails to capture the moment in time at which the various frequencies
+ occur.
+ The Fourier transform is good for characterizing signals whose frequency
+ does not change with time, but does not work for signals with changing
+ frequencies.
+ Therefore, we need to modify this method in order to analyze signals with
+ changing frequencies in order to extract both time and frequency information.
+ Such an analysis, which extracts both time and frequency information with
+ a loss of resolution in both domains, is called time frequency analysis.
+ 
+\end_layout
+
+\begin_layout Standard
+The simplest method of time frequency analysis is to decompose the signal
+ over the time domain into separate time frames.
+ For each time window, the Fourier transform is applied in order to characterize
+ the frequencies present during that time frame.
+ A slightly more complicated method is to have the window translate across
+ the time domain, in order to pick up the frequency data at each instant
+ in time.
+ This is known as the Gábor transform.
+ Several other windowed Fourier transforms exist, such as the Zak transform
+ and the Wigner-Ville distribution.
+\end_layout
+
+\begin_layout Subsection
+Gábor Transform
+\end_layout
+
+\begin_layout Standard
+The Gábor transform, also known as the short term Fourier transform, is
+ defined as
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+G[f](t,\omega)=\int_{-\infty}^{\infty}f(\tau)\overline{g}(\tau-t)e^{-i\omega\tau}d\tau
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+where 
+\begin_inset Formula $g_{(t,\omega)}(\tau)=e^{i\omega\tau}g(\tau-t)$
+\end_inset
+
+ and the bar denotes the complex conjugate of the function.
+\end_layout
+
+\begin_layout Standard
+The function 
+\begin_inset Formula $\overline{g}(\tau-t)$
+\end_inset
+
+ acts as a time filter for localizing the signal over a specific time window.
+ The integration over the parameter τ slides the time-filtering window down
+ the entire signal in order to pick out the frequency information at each
+ instant of time.
+ 
+\begin_inset Formula $\tau$
+\end_inset
+
+ is the time at which the function is centered, and 
+\begin_inset Formula $a$
+\end_inset
+
+ is the width of the function.
+ Figure 1 is a cartoon representation of the fundamental ideas behind a
+ time series analysis, Fourier transform analysis and Ǵabor transform analysis
+ of a given signal.
+ In the time series method, good resolution is achieved of the signal in
+ the time domain, but no frequency resolution is achieved.
+ In Fourier analysis, the frequency domain is well resolved at the expense
+ of losing all time resolution.
+ The Ǵabor method, or short-time Fourier transform, trades away some measure
+ of accuracy in both the time and frequency domains in order to give both
+ time and frequency resolution simultaneously.
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename Pictures/Fg1.png
+	width 10cm
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Graphical depiction of the difference between a time series analysis, Fourier
+ analysis and Ǵabor analysis of a signal.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+In practice, the Gábor transform is computed by discretizing the time and
+ frequency domain.
+ Thus a discrete version of the transform needs to be considered.
+ Essentially, by discretizing, the transform is done on a lattice of time
+ and frequency.
+ Thus consider the lattice, or sample points,
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\nu=m\omega_{0}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\tau=nt_{0}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+where m and n are integers and 
+\begin_inset Formula $\omega_{0,}t_{0}>0$
+\end_inset
+
+.
+ Then the discrete version of 
+\begin_inset Formula $g_{t,w}$
+\end_inset
+
+ becomes
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+g_{m,n}(t)=e^{i2\pi\omega_{0}t}g(t-nt_{0})
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+If 
+\begin_inset Formula $0<t_{0,}\omega_{0}<1$
+\end_inset
+
+, then the signal is over-sampled and time frames exist which yield excellent
+ localization of the signal in both time and frequency.
+ If 
+\begin_inset Formula $\omega_{0},t_{0}>1$
+\end_inset
+
+, the signal is under-sampled and the Gábor lattice is incapable of reproducing
+ the signal.
+\end_layout
+
+\begin_layout Standard
+Several functions can be used for the Gábor window; one of the simplest
+ is the Gaussian function, given by
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+g(t)=e^{-a(t-b)^{2}}
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+where a and b are variables that describe the filter width and the center
+ of the function, respectively.
+ If the exponent to which 
+\begin_inset Formula $(t-b)$
+\end_inset
+
+ is raised to is increased, we get a hyper Gaussian.
+\end_layout
+
+\begin_layout Standard
+Another function for the Gábor window explored in this work is the Mexican
+ hat wavelet, so named due to it's resemblance to a Sombrero.
+ The Mexican hat function is the second derivative of the Gaussian wave
+ and (for application in this work) is defined as
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+g(t)=(1-bt)e^{-a(t-c)^{2}}
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+where c describes the center of the wave, a describes the width of the function
+ and b describes the maximum negative value reached by the function as well
+ as it's curvature.
+ Another function explored in this work is the Shannon window, or a square
+ wave.
+ The data gathered by using windowed Fourier transforms can be used to develop
+ a spectrogram.
+\end_layout
+
+\begin_layout Subsection
+Spectrograms
+\end_layout
+
+\begin_layout Standard
+A spectrogram is a visual representation of a spectrum of frequencies in
+ a signal as they vary with time.
+ In this work, spectrograms are constructed using frequency data gathered
+ using the Gábor transform on three audio signals.
+ Spectrograms are useful tools because they provide information about the
+ frequencies present at a moment in time, as opposed to the Fourier transform,
+ which gives only frequency information.
+ The time-frequency analysis can can be used to produce speech recognition
+ algorithms given the characteristic signatures in the time-frequency domains
+ of sounds.
+ Thus spectrograms are a sort of fingerprint of sound.
+ Several examples of spectrograms are shown in Section 4 of this report.
+\end_layout
+
+\begin_layout Section
+Algorithm Implementation and Development
+\end_layout
+
+\begin_layout Standard
+Spectrograms for three audio signals are developed in this work.
+ The effect of the size and type of window used on the spectrogram is also
+ analyzed.
+ The algorithm used for all three spectrograms is quite similar, and is
+ listed below.
+\end_layout
+
+\begin_layout Itemize
+Import .wav file(s)/load audio file into MATLAB.
+ Calculate its length and the sampling rate(number of points).
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+The audio vector needs to be transposed since it is in a column.
+\end_layout
+
+\end_deeper
+\begin_layout Itemize
+Define grid vectors
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+The grid vectors for the frequency domain need to be multiplied by 
+\begin_inset Formula $\frac{2\pi}{L}$
+\end_inset
+
+ since the FFT algorithm assumes 
+\begin_inset Formula $2\pi$
+\end_inset
+
+ periodic signals.
+ These grid vectors also need to be shifted using the 
+\family typewriter
+fftshift
+\family default
+ function, since the FFT algorithm shifts the data such that 
+\begin_inset Formula $x\in[\text{-L},\text{0}]\text{→[0,L]}$
+\end_inset
+
+ and 
+\begin_inset Formula $x\in[\text{0},\text{L}]\text{→[-L,0]}$
+\end_inset
+
+.
+\end_layout
+
+\end_deeper
+\begin_layout Itemize
+Define a time-slide vector for the sliding window (the time by which the
+ window is translated).
+\end_layout
+
+\begin_layout Itemize
+Start loop for translating window.
+\end_layout
+
+\begin_layout Itemize
+Inside the loop, define the function for the translating window 
+\begin_inset Formula $g$
+\end_inset
+
+.
+ This is either a Gaussian function, Shannon window or a Mexican hat function.
+\end_layout
+
+\begin_layout Itemize
+Multiply the audio signal by the translating window function, and take the
+ Fourier transform of the resulting function.
+\end_layout
+
+\begin_layout Itemize
+Take the absolute and fftshifted value of the resulting resulting vector
+ and add it as a new row to 
+\family typewriter
+Sgt_spec
+\family default
+, a matrix from which the spectrogram will be constructed.
+ 
+\end_layout
+
+\begin_layout Itemize
+Plot the signal with the translating window, the function resulting from
+ their product and it's Fourier transform.
+\end_layout
+
+\begin_layout Itemize
+Move to next iteration.
+ If loop is over, plot the spectrogram using the 
+\family typewriter
+pcolor
+\family default
+ function resulting from the 
+\family typewriter
+Sgt_spec
+\family default
+ matrix with time on the x-axis and frequencies on the y-axis.
+\end_layout
+
+\begin_layout Standard
+The effect of the variables that govern the behavior of window (mentioned
+ in Section 2) is tested heuristically, and the best values for these variables
+ is found.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename Pictures/HandelWaveform.png
+	width 8cm
+	height 8cm
+	keepAspectRatio
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+'Hallelujah' chorus from Handel's 'Messiah'
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Computational Results
+\end_layout
+
+\begin_layout Standard
+Computational results for the musical piece by Handel and the recordings
+ of a piano and recorder are presented in this section.
+\end_layout
+
+\begin_layout Subsection
+The Handel Piece
+\end_layout
+
+\begin_layout Standard
+This audio signal consists of a piece of music composed by Handel.
+ It runs for 8.93 seconds and is discretized into 73113 points.
+ The sampling rate is 8192 Hz.
+ Figure 2 shows the audio signal in time.
+ 
+\end_layout
+
+\begin_layout Standard
+The signal is investigated using the Gábor transform, with a Gaussian function
+ as the sliding window.
+ Figure 3 shows the audio signal with the sliding window on the top, the
+ product of the Gaussian function and the audio signal in the middle, and
+ the Fourier transform of the resulting function at the bottom.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename Pictures/trigraph.png
+	width 13cm
+	height 13cm
+	keepAspectRatio
+
+\end_inset
+
+
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Top: Audio signal with sliding window; Middle: Gaussian function multiplied
+ by audio signal; Bottom: Fourier transform of function
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Figure 4 shows a spectrogram of the audio signal, created using a Gaussian
+ function with 
+\begin_inset Formula $a=500$
+\end_inset
+
+ and a time step of 
+\begin_inset Formula $0.01$
+\end_inset
+
+ seconds.
+ Therefore, the width of the filter is approximately 
+\begin_inset Formula $0.25$
+\end_inset
+
+ seconds.
+ Since the lowest frequency that can be heard by humans in 20 Hz, and the
+ filter width is greater than 
+\begin_inset Formula $1/20$
+\end_inset
+
+ seconds, all frequencies are captured by the filter.
+ In this case, the signal is oversampled, and hence a good localization
+ of both time and frequency is obtained.
+ Two major groups of frequencies can be isolated; one in the 500 - 600 Hz
+ range and the other in the 260 - 300 Hz range, which appear to be the 'Halleluj
+ah' chorus sung by women (higher frequencies) and men (lower frequencies).
+ Other frequencies are not shown well in this plot because the amplitude
+ of the other frequencies is lower than the amplitude of the frequencies
+ mentioned above.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename Pictures/HandelG500_100.png
+	width 10cm
+	height 10cm
+	keepAspectRatio
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Spectrogram of Handel's 'Messiah'.
+ 
+\begin_inset Formula $a=500,\Delta t=0.01s$
+\end_inset
+
+ 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Figure 5 shows a comparison of the spectrograms generated by increasing
+ the size of the Gábor window from approximately 0.25 seconds to 1.5 seconds,
+ or varying 
+\begin_inset Formula $a$
+\end_inset
+
+from 500 to 1.
+ The time step of the sliding window is kept constant at 0.01 seconds.
+ Figure 5(a) shows a good resolution in time as well as space.
+ As mentioned before, all frequencies are caught by the filter, since the
+ filter width is much larger than the largest wavelength of any frequency.
+ The resolution becomes a little worse in Figure 5(b), and very poor in
+ Figure 5(d).
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset space \hfill{}
+\end_inset
+
+
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename Pictures/HandelG500_100.png
+	width 5.5cm
+	height 5.5cm
+	keepAspectRatio
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+\begin_inset Formula $a=500$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset space \hfill{}
+\end_inset
+
+
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename Pictures/HandelG100_100.png
+	width 5.5cm
+	height 5.5cm
+	keepAspectRatio
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+\begin_inset Formula $a=100$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset space \hfill{}
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset space \hfill{}
+\end_inset
+
+
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename Pictures/HandelG50_100.png
+	width 5.5cm
+	height 5.5cm
+	keepAspectRatio
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+\begin_inset Formula $a=50$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset space \hfill{}
+\end_inset
+
+
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename Pictures/HandelG1_100.png
+	width 5.5cm
+	height 5.5cm
+	keepAspectRatio
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+\begin_inset Formula $a=1$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset space \hfill{}
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Spectrograms showing increasing size of window for 
+\begin_inset Formula $\Delta t=0.01$
+\end_inset
+
+ seconds
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Figure 6 shows the effect of undersampling and oversampling the audio signal.
+ An oversampled signal gives good localization in time and space.
+ An undersampled signal cannot fully recreate the signal, since all the
+ data is never sampled.
+ Figure 6(a) shows an undersampled spectrogram, with a filter width of 0.25
+ seconds and a time step of 0.6 seconds.
+ As can be seen, several frequencies are missing from the spectrogram, since
+ they have not been sampled.
+ Figure 6(b) shows an oversampled spectrogram, the same as Figure 2.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset space \hfill{}
+\end_inset
+
+
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename Pictures/HandelUnder.png
+	width 5.5cm
+	height 5.5cm
+	keepAspectRatio
+
+\end_inset
+
+
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Undersampled spectrogram
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset space \hfill{}
+\end_inset
+
+
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename Pictures/HandelG500_200.png
+	width 5.5cm
+	height 5.5cm
+	keepAspectRatio
+
+\end_inset
+
+
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Oversampled spectrogram
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset space \hfill{}
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Effect of undersampling and oversampling on spectrogram
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Figure 7a shows spectrogram developed using and Mexican hat function.
+ The time step of the sliding window for the Mexican hat is 0.01, and the
+ window width is about 0.5 sec.
+ The Mexican hat function generates a good spectrogram, quite similar to
+ that generated by the Gaussian function.
+ The spectrogram generated by the Shannon window, however, is seen to be
+ shaped into 'blocks', and frequencies are not as well resolved as the Gauss
+ function and the Mexican hat function.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset space \hfill{}
+\end_inset
+
+
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename Pictures/HandelM100_100_100.png
+	width 5.5cm
+	height 5.5cm
+	keepAspectRatio
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Mexican hat function
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset space \hfill{}
+\end_inset
+
+
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename Pictures/shannon.png
+	width 5.5cm
+	height 5.5cm
+	keepAspectRatio
+
+\end_inset
+
+
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Shannon window
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset space \hfill{}
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Spectrograms generated by the Mexican hat function and the Shannon window
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Mary Had a Little Lamb
+\end_layout
+
+\begin_layout Standard
+The section of the report analyzes two versions of 'Mary had a Little Lamb'.
+ One is played with a piano and the other is played with a recorder.
+ The piano recording comprises of 701,440 points and is 16 seconds long,
+ while the recorder piece is 14 seconds long and is discretized into 627,712
+ points.
+ 
+\end_layout
+
+\begin_layout Standard
+Both pieces are analyzed using the Gabor transform, with the Gaussian function
+ as the sliding window.
+ Only a quarter of the recorder's signal was analyzed due to the large computati
+onal and memory requirements.
+ The window width is taken to be 0.5 sec, and the time step is taken to be
+ 0.05 sec.
+ Figure 8 shows the spectrograms of both the audio signals, with overtones
+ removed.
+ Overtones are integral multiples of the fundamental frequency, which give
+ the instrument its 'timbre'.
+ The piano signal has frequencies ranging from 120 Hz to 180 Hz, while the
+ recorder has frequencies ranging from 400 Hz to 525 Hz.
+ This is consistent with the graph on musical instruments given in the HW
+ problem statement.
+ Only a quarter of the recorder's signal was analyzed due to the large computati
+onal and memory requirements.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset space \hfill{}
+\end_inset
+
+
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename Pictures/keyboard.png
+	width 5.5cm
+	height 5.5cm
+	keepAspectRatio
+
+\end_inset
+
+
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Spectrogram of piano
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset space \hfill{}
+\end_inset
+
+
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename Pictures/recorder.png
+	width 5.5cm
+	height 5.5cm
+	keepAspectRatio
+
+\end_inset
+
+
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Spectrogram of recorder.
+ Only 4.5 seconds could be analyzed due to computational constraints 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset space \hfill{}
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Spectrogram of 'Mary had a Little Lamb' played using piano and recorder
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Figure 9 shows the spectrogram of the piano and recorder, this time including
+ overtones.
+ Though the overtones are lower in amplitude than the fundamental frequency,
+ they are responsible for the way an instrument sounds.
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset space \hfill{}
+\end_inset
+
+
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename Pictures/keyboardovertones.png
+	width 5.5cm
+	height 5.5cm
+	keepAspectRatio
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Piano
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset space \hfill{}
+\end_inset
+
+
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename Pictures/recorderovertones.png
+	width 5.5cm
+	height 5.5cm
+	keepAspectRatio
+
+\end_inset
+
+
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Recorder
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset space \hfill{}
+\end_inset
+
+
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Spectrograms showing overtones of piano and recorder
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Summary and Results
+\end_layout
+
+\begin_layout Standard
+Three audio signals were analyzed using time frequency analysis.
+ The Gabor transform was successfully used to create spectrograms of the
+ three audio signals.
+ Several functions were used for the sliding window in the Gabor transform
+ for the first audio signal, Handel's 'Messiah'.
+ The effect of increasing the window width and window time step on the spectrogr
+am were studied.
+ It was found that a window width of approximately 0.3 seconds and a window
+ time step of 0.01 seconds is sufficient to generate good localization of
+ time and frequency.
+ Undersampling and oversampling the data were also explored.
+ 
+\end_layout
+
+\begin_layout Standard
+The difference between the piano and recorder was brought out by the time
+ frequency analysis of the other two audio signals, versions of 'Mary had
+ a Little Lamb' using piano and recorder.
+ The frequencies of the piano in this recording ranged from 120 Hz to 180
+ Hz, while that from the recorder ranged from 400 Hz to 525 Hz.
+ Differences in the overtones of both instruments was also noted.
+ Using the Gabor transform, the musical score of the tune was successfully
+ recreated.
+\end_layout
+
+\begin_layout Section*
+References
+\end_layout
+
+\begin_layout Enumerate
+Kutz, J.
+ Nathan, Data-Driven Modeling & Scientific Computation: Methods for Complex
+ Systems & Big Data, September 2013
+\end_layout
+
+\begin_layout Enumerate
+Matlab help
+\end_layout
+
+\begin_layout Section*
+Appendix I: MATLAB Functions Used
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+wavread
+\family default
+: reads wave file into MATLAB
+\end_layout
+
+\begin_layout Itemize
+
+\family typewriter
+y = wavread(filename)
+\family default
+ loads a WAVE file specified by the string filename, returning the sampled
+ data in y.
+ If filename does not include an extension, 
+\family typewriter
+wavread
+\family default
+ appends .wav
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+length
+\family default
+: length of largest array dimension
+\end_layout
+
+\begin_layout Itemize
+
+\family typewriter
+L = length(X)
+\family default
+ returns the length of the largest array dimension in X.
+ For vectors, the length is simply the number of elements.
+ For arrays with more dimensions, the length is 
+\family typewriter
+max(size(X))
+\family default
+.
+ 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+plot
+\family default
+: creates a 2-d line plot.
+\end_layout
+
+\begin_layout Itemize
+
+\family typewriter
+plot(X,Y)
+\family default
+ creates a 2-D line plot of the data in Y versus the corresponding values
+ in X.
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+fft
+\family default
+: One dimensional discrete Fourier transform
+\end_layout
+
+\begin_layout Itemize
+
+\family typewriter
+Y = fft(x)
+\family default
+ returns the discrete Fourier transform (DFT) of vector x, computed with
+ a fast Fourier transform (FFT) algorithm.
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+pcolor
+\family default
+: creates a pseudocolor (checkerboard) plot
+\end_layout
+
+\begin_layout Itemize
+
+\family typewriter
+pcolor(C)
+\family default
+ draws a pseudocolor plot.
+ The elements of C are linearly mapped to an index into the current colormap.
+ The mapping from C to the current colormap is defined by colormap
+\end_layout
+
+\begin_layout Section*
+Appendix II: MATLAB Code
+\end_layout
+
+\begin_layout Standard
+Matlab code for Handel's 'Messiah'
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+clear all; close all; clc; 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+load handel 
+\color blue
+%load audio file
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+a = 10; 
+\color blue
+%set window width for Gaussian wave/Mexican hat
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+ShaWid = 0.25; 
+\color blue
+%set window width for Shannon window
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+b = 100; 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\begin_inset space ~
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+v = y'/2; 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+L = length(v)/Fs; 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+k=(2*pi/(2*L))*[0:(length(v)-1)/2 -(length(v)-1)/2:-1]; ks=fftshift(k);
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\begin_inset space ~
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+tfinal = length(v)/Fs; 
+\color blue
+%Final time of signal
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+t = (1:length(v))/Fs;
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\begin_inset space ~
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+Sgt_spec = []; tslide = 0:0.01:tfinal; 
+\color blue
+%set sliding window time step
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\begin_inset space ~
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+figure(2) 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+for ii = 1:length(tslide) 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+g = exp(-a*(t-tslide(ii)).^10); 
+\color blue
+%Gaussian window
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\color blue
+%Shannon window
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+%
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+if tslide(ii) + ShaWid > 8.92 % break; 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+%
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+end 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+%
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+g = 0 * [1:length(v)]; 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+%
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+if tslide(ii) < 2 * ShaWid 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+%
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+tend = floor((tslide(ii) + ShaWid) * 8192); 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+%
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+g(1:tend) = 1; 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+%
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+elseif tfinal - tslide(ii) < 2 * ShaWid 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+%
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+tbeg = ceil((tslide(ii) * 8192)) + 1; 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+%
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+g(tbeg:end) = 1; 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+%
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+else 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+%
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+tbeg = floor((tslide(ii) - ShaWid) * 8192); 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+%
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+tend = floor((tslide(ii) + ShaWid) * 8192); 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+%
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+g(tbeg:tend) = 1; 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+%
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+end 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\color blue
+%Mexican hat window
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+%g = (1 - b * (t - tslide(ii)).^2) .* exp(-a*(t-tslide(ii)).^2); 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+Sg = g.*v; Sgt = fft(Sg); 
+\color blue
+%Multiply window with signal
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+Sgt_spec = [Sgt_spec; abs(fftshift(Sgt))]; 
+\color blue
+%Take FFT of result
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\color blue
+%Plots
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+subplot(3,1,1), plot((1:length(v))/Fs,v, (1:length(v))/Fs, g, 'r'); 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+xlabel('Time (sec)'); ylabel('Amplitude'); 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+set(gca, 'Fontsize', 14); 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+subplot(3,1,2), plot((1:length(v))/Fs, Sg); 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+xlabel('Time (sec)'); ylabel('Amplitude'); 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+set(gca, 'Fontsize', 14); 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+subplot(3,1,3), plot(ks/(2*pi), abs(fftshift(Sgt))); 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+xlabel('Frequency (hz)'); ylabel('Amplitude'); 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+set(gca, 'Fontsize', 14); pause(0.3) 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+end
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\begin_inset space ~
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\color blue
+%Create spectrogram
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+figure(5) 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+pcolor(tslide,ks/(2*pi),Sgt_spec.'), shading interp 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+set(gca,'Ylim',[0 800],'Fontsize',[20]) 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+xlabel('Time(sec)'); ylabel('Frequency(Hz)');
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\color black
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+Matlab code for 'Mary had a little lamb'
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\color blue
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\color black
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\color black
+clear all; close all; clc;
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\color black
+tr_piano=16; 
+\color blue
+% record time in seconds
+\color black
+ 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\color black
+y=wavread('music1'); 
+\color blue
+%load audio file
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\color black
+Fs=length(y)/tr_piano;
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\color black
+\begin_inset space ~
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\color black
+v = y'/2; 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\color black
+a = 500; 
+\color blue
+%set window width for Gaussian function
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\color black
+L = length(v)/Fs;
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\color black
+\begin_inset space ~
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\color black
+k=(2*pi/(2*L))*[0:length(v)/2-1 -length(v)/2:-1]; ks=fftshift(k);
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\color black
+\begin_inset space ~
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\color black
+tfinal = length(v)/Fs; 
+\color blue
+%calculate final time of signal
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\color black
+t = (1:length(v))/Fs;
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\color black
+\begin_inset space ~
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\color black
+Sgt_spec = []; 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\color black
+tslide = 0:0.05:tfinal; 
+\color blue
+%vector for time step of sliding window
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\color black
+figure(2) 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\color black
+for ii = 1:length(tslide) 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\color black
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+g = exp(-a*(t-tslide(ii)).^2); 
+\color blue
+%Gaussian window
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\color black
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+Sg = g.*v; Sgt = fft(Sg); 
+\color blue
+%multiply window with signal and take fft
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\color black
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+Sgt_spec = [Sgt_spec; abs(fftshift(Sgt))]; 
+\color blue
+%add to matrix
+\color black
+ 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\color black
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\color blue
+%plots
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\color black
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+subplot(3,1,1),plot((1:length(v))/Fs,v,(1:length(v))/Fs,g,'r'); 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\color black
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+axis([0 length(v)/Fs -0.5 1]); 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\color black
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+subplot(3,1,2), plot((1:length(v))/Fs, Sg); 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\color black
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+axis([0 length(v)/Fs -0.5 1]); 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\color black
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+subplot(3,1,3), plot(ks, abs(fftshift(Sgt))); 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\color black
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+pause(0.05) 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\color black
+end
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\color black
+\begin_inset space ~
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\color blue
+%Create spectrogram
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\color black
+figure(5) 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\color black
+pcolor(tslide,ks/(2*pi),Sgt_spec.'), shading interp 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+\color black
+set(gca,'Ylim', [100 600],'Fontsize',[14]) 
+\end_layout
+
+\end_body
+\end_document
